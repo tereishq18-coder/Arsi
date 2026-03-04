@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Song Generator - Pro & Admin</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        dark: {
+                            900: '#050507',
+                            800: '#0f0f13',
+                            700: '#1a1a24',
+                            600: '#252533',
+                        },
+                        brand: {
+                            purple: '#8b5cf6',
+                            pink: '#ec4899',
+                            blue: '#3b82f6'
+                        }
+                    },
+                    animation: {
+                        'spin-slow': 'spin 10s linear infinite',
+                        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: #000;
+            color: white;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .gradient-text {
+            background: linear-gradient(to right, #c084fc, #f472b6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .gradient-bg {
+            background: linear-gradient(to right, #8b5cf6, #ec4899);
+        }
+        .glass-panel {
+            background: rgba(20, 20, 30, 0.7);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        .sidebar-transition {
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0f0f13; 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #252533; 
+            border-radius: 3px;
+        }
+        .toggle-checkbox:checked {
+            right: 0;
+            border-color: #8b5cf6;
+        }
+        .toggle-checkbox:checked + .toggle-label {
+            background-color: #8b5cf6;
+        }
+        .admin-glow {
+            box-shadow: 0 0 20px rgba(59, 130, 246, 0.3);
+        }
+    </style>
+</head>
+<body class="h-screen flex flex-col overflow-hidden max-w-md mx-auto bg-dark-900 shadow-2xl relative">
+
+    <!-- OVERLAY (For Sidebar) -->
+    <div id="overlay" onclick="toggleSidebar()" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 hidden transition-opacity opacity-0"></div>
+
+    <!-- SIDEBAR MENU -->
+    <aside id="sidebar" class="fixed top-0 left-0 h-full w-72 bg-dark-800 border-r border-dark-700 z-50 transform -translate-x-full sidebar-transition flex flex-col">
+        <!-- Sidebar Header -->
+        <div class="p-6 flex items-center justify-between border-b border-dark-700">
+            <div class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center">
+                    <i class="fa-solid fa-music text-xs text-white"></i>
+                </div>
+                <span class="font-bold text-lg">AI Song Gen</span>
+            </div>
+            <button onclick="toggleSidebar()" class="text-gray-400 hover:text-white">
+                <i class="fa-solid fa-xmark text-xl"></i>
+            </button>
+        </div>
+
+        <!-- Sidebar Content -->
+        <div class="flex-1 overflow-y-auto py-4">
+            <nav class="space-y-1 px-3">
+                <a href="#" onclick="switchView('create')" class="flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-xl bg-dark-700 text-white">
+                    <i class="fa-solid fa-wand-magic-sparkles text-brand-purple w-5"></i> Create Song
+                </a>
+                <a href="#" onclick="switchView('list')" class="flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-xl text-gray-400 hover:bg-dark-700 hover:text-white transition">
+                    <i class="fa-solid fa-list text-gray-500 w-5"></i> My Songs
+                </a>
+                
+                <!-- Features Section -->
+                <div class="pt-4 pb-2">
+                    <p class="px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Features <span class="bg-gradient-to-r from-pink-500 to-purple-500 text-white text-[9px] px-1.5 py-0.5 rounded-full ml-1">NEW</span></p>
+                    <a href="#" class="flex items-center justify-between px-4 py-3 text-sm font-medium rounded-xl text-gray-400 hover:bg-dark-700 hover:text-white transition group">
+                        <div class="flex items-center gap-3">
+                            <i class="fa-solid fa-microphone-lines text-gray-500 group-hover:text-brand-pink transition w-5"></i> Vocal Remover
+                        </div>
+                        <span class="bg-gradient-to-r from-pink-500 to-purple-500 text-white text-[9px] px-1.5 py-0.5 rounded-full">NEW</span>
+                    </a>
+                    <a href="#" class="flex items-center justify-between px-4 py-3 text-sm font-medium rounded-xl text-gray-400 hover:bg-dark-700 hover:text-white transition group">
+                        <div class="flex items-center gap-3">
+                            <i class="fa-solid fa-robot text-gray-500 group-hover:text-brand-pink transition w-5"></i> Voice Changer
+                        </div>
+                        <span class="bg-gradient-to-r from-pink-500 to-purple-500 text-white text-[9px] px-1.5 py-0.5 rounded-full">NEW</span>
+                    </a>
+                    <a href="#" class="flex items-center justify-between px-4 py-3 text-sm font-medium rounded-xl text-gray-400 hover:bg-dark-700 hover:text-white transition group">
+                        <div class="flex items-center gap-3">
+                            <i class="fa-solid fa-video text-gray-500 group-hover:text-brand-pink transition w-5"></i> Music Video
+                        </div>
+                        <span class="bg-gradient-to-r from-pink-500 to-purple-500 text-white text-[9px] px-1.5 py-0.5 rounded-full">NEW</span>
+                    </a>
+                    <a href="#" class="flex items-center justify-between px-4 py-3 text-sm font-medium rounded-xl text-gray-400 hover:bg-dark-700 hover:text-white transition group">
+                        <div class="flex items-center gap-3">
+                            <i class="fa-solid fa-music text-gray-500 group-hover:text-brand-pink transition w-5"></i> Music to MIDI
+                        </div>
+                        <span class="bg-gradient-to-r from-pink-500 to-purple-500 text-white text-[9px] px-1.5 py-0.5 rounded-full">NEW</span>
+                    </a>
+                </div>
+
+                <div class="pt-2 border-t border-dark-700 mt-2">
+                    <a href="#" class="flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-xl text-gray-400 hover:bg-dark-700 hover:text-white transition">
+                        <i class="fa-solid fa-tag text-gray-500 w-5"></i> Pricing
+                    </a>
+                    <a href="#" class="flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-xl text-gray-400 hover:bg-dark-700 hover:text-white transition">
+                        <i class="fa-solid fa-envelope text-gray-500 w-5"></i> Contact
+                    </a>
+                </div>
+            </nav>
+        </div>
+
+        <!-- Sidebar Footer (User Profile) -->
+        <div class="p-4 border-t border-dark-700 bg-dark-800">
+            <div class="flex items-center gap-3 mb-3">
+                <div class="w-10 h-10 rounded-full bg-gradient-to-br from-gray-700 to-gray-600 flex items-center justify-center text-lg font-bold">X</div>
+                <div class="flex-1">
+                    <h4 class="text-sm font-bold text-white">xerojak643</h4>
+                    <p class="text-xs text-gray-500">Free Plan</p>
+                </div>
+                <div class="bg-dark-700 px-2 py-1 rounded text-xs font-mono text-brand-purple border border-dark-600">
+                    6 Credits
+                </div>
+            </div>
+            
+            <!-- Admin Toggle Simulation -->
+            <button onclick="toggleAdminMode()" id="adminToggleBtn" class="w-full py-2 bg-dark-700 hover:bg-dark-600 text-xs text-gray-400 rounded-lg transition flex items-center justify-center gap-2 border border-dashed border-gray-600">
+                <i class="fa-solid fa-user-shield"></i> Switch to Admin Panel
+            </button>
+        </div>
+    </aside>
+
+    <!-- Header -->
+    <header class="flex items-center justify-between px-4 py-3 bg-dark-800/80 backdrop-blur border-b border-dark-700 z-20">
+        <div class="flex items-center gap-3">
+            <button onclick="toggleSidebar()" class="text-gray-300 hover:text-white">
+                <i class="fa-solid fa-bars text-xl"></i>
+            </button>
+            <div class="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center shadow-lg shadow-purple-500/20">
+                <i class="fa-solid fa-music text-xs text-white"></i>
+            </div>
+            <span class="font-bold text-lg tracking-tight hidden sm:block">AI Song Generator</span>
+        </div>
+        <div class="flex items-center gap-4">
+            <div class="w-8 h-8 rounded-full border border-gray-600 overflow-hidden">
+                <img src="https://flagcdn.com/w40/us.png" alt="US" class="w-full h-full object-cover">
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Area -->
+    <main class="flex-1 overflow-y-auto pb-24 relative scroll-smooth bg-dark-900" id="mainContainer">
+        
+        <!-- VIEW: ADMIN DASHBOARD (Hidden by default) -->
+        <div id="view-admin" class="hidden p-4 space-y-6 animate-fade-in">
+            <div class="bg-gradient-to-r from-blue-900/50 to-purple-900/50 border border-blue-500/30 rounded-2xl p-6 admin-glow relative overflow-hidden">
+                <div class="absolute top-0 right-0 w-32 h-32 bg-blue-500/10 rounded-full blur-2xl -mr-10 -mt-10"></div>
+                <h2 class="text-2xl font-bold text-white mb-1">Admin Dashboard</h2>
+                <p class="text-blue-200 text-sm mb-4">Welcome back, Administrator.</p>
+                
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="bg-dark-800/80 p-4 rounded-xl border border-dark-700">
+                        <p class="text-xs text-gray-400 uppercase">Credits</p>
+                        <p class="text-2xl font-bold text-green-400 flex items-center gap-2">
+                            <i class="fa-solid fa-infinity"></i> Unlimited
+                        </p>
+                    </div>
+                    <div class="bg-dark-800/80 p-4 rounded-xl border border-dark-700">
+                        <p class="text-xs text-gray-400 uppercase">Server Status</p>
+                        <p class="text-2xl font-bold text-green-400 text-sm flex items-center gap-2">
+                            <span class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span> Online
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="space-y-3">
+                <h3 class="text-sm font-semibold text-gray-400 uppercase">System Controls</h3>
+                <div class="bg-dark-800 rounded-xl p-4 border border-dark-700 flex justify-between items-center">
+                    <div>
+                        <p class="text-white font-medium">Maintenance Mode</p>
+                        <p class="text-xs text-gray-500">Disable song generation for users</p>
+                    </div>
+                    <div class="w-12 h-6 bg-dark-600 rounded-full relative cursor-pointer">
+                        <div class="w-5 h-5 bg-gray-400 rounded-full absolute left-0.5 top-0.5"></div>
+                    </div>
+                </div>
+                <div class="bg-dark-800 rounded-xl p-4 border border-dark-700 flex justify-between items-center">
+                    <div>
+                        <p class="text-white font-medium">GPU Cluster Load</p>
+                        <p class="text-xs text-gray-500">Current utilization: 42%</p>
+                    </div>
+                    <div class="w-24 h-2 bg-dark-600 rounded-full overflow-hidden">
+                        <div class="h-full bg-blue-500 w-[42%]"></div>
+                    </div>
+                </div>
+            </div>
+            
+            <button onclick="toggleAdminMode()" class="w-full py-3 bg-red-500/10 text-red-400 border border-red-500/30 rounded-xl text-sm font-medium hover:bg-red-500/20 transition">
+                Exit Admin Mode
+            </button>
+        </div>
+
+        <!-- VIEW: CREATE SONG -->
+        <div id="view-create" class="p-4 space-y-6 animate-fade-in">
+            
+            <!-- Mode Toggle -->
+            <div class="flex bg-dark-800 p-1 rounded-xl w-fit mx-auto border border-dark-700">
+                <button class="px-6 py-2 bg-dark-700 rounded-lg text-sm font-semibold text-white shadow">Lyrics</button>
+                <button class="px-6 py-2 rounded-lg text-sm font-semibold text-gray-400 hover:text-white">Description</button>
+            </div>
+            
+            <div class="flex justify-end">
+                <button class="flex items-center gap-2 bg-gradient-to-r from-pink-600 to-purple-600 px-4 py-1.5 rounded-full text-xs font-bold text-white shadow-lg shadow-purple-900/40">
+                    V3.0 <i class="fa-solid fa-chevron-down text-[10px]"></i>
+                    <span class="bg-red-500 text-[9px] px-1.5 rounded ml-1">NEW</span>
+                </button>
+            </div>
+
+            <!-- Lyrics Editor -->
+            <div class="space-y-2">
+                <div class="flex justify-between items-center">
+                    <label class="text-sm font-semibold text-gray-200 flex items-center gap-2">
+                        Lyrics <i class="fa-regular fa-circle-question text-gray-500"></i>
+                    </label>
+                    <i class="fa-regular fa-trash-can text-gray-400 hover:text-red-400 cursor-pointer"></i>
+                </div>
+                <div class="relative">
+                    <textarea class="w-full h-64 bg-dark-800 border border-dark-700 rounded-xl p-4 text-sm text-gray-300 focus:outline-none focus:border-brand-purple resize-none leading-relaxed" placeholder="Enter lyrics here...">Intro (Perfect size, floor-ready)
+
+Swagwaale Lungi aa gaya scene mein!
+मुँछों ko thoda round ghumake,
+Anna ke jaise chasma laga ke,
+Coconut mein Lassi mila ke,
+
+Floor pe sabko jhakaas dikha ke!
+DJ wale beat pe sabko hilaana hai,
+Rajni ke fan sab ready ho jao,
+Party shuru, sabko jhulaa do!
+
+Chorus Hook
+All the Rajni fans...
+Don't miss the chance</textarea>
+                    <div class="absolute bottom-3 right-3 text-xs text-gray-500 bg-dark-900/80 px-2 py-1 rounded">2873/5002</div>
+                </div>
+                
+                <!-- Toggles inside lyrics box -->
+                <div class="flex flex-wrap gap-3 mt-3">
+                    <div class="flex items-center gap-2 bg-dark-800 px-3 py-2 rounded-full border border-dark-700">
+                        <div class="w-8 h-4 bg-dark-600 rounded-full relative cursor-pointer">
+                            <div class="w-4 h-4 bg-brand-purple rounded-full absolute left-0 top-0 shadow-sm"></div>
+                        </div>
+                        <span class="text-xs text-gray-300">Instrumental</span>
+                        <i class="fa-regular fa-circle-question text-gray-500 text-xs"></i>
+                    </div>
+                    <button class="flex items-center gap-2 bg-dark-800 px-3 py-2 rounded-full border border-dark-700 text-xs text-gray-300 hover:border-brand-purple transition">
+                        <i class="fa-solid fa-wand-magic-sparkles text-brand-purple"></i> AI Lyrics
+                    </button>
+                </div>
+            </div>
+
+            <!-- Title -->
+            <div class="space-y-2">
+                <label class="text-sm font-semibold text-gray-200 flex items-center gap-2">
+                    Title <i class="fa-regular fa-circle-question text-gray-500"></i>
+                </label>
+                <div class="relative">
+                    <input type="text" value="Lungi Dance 2.0" class="w-full bg-dark-800 border border-dark-700 rounded-xl py-3 px-4 text-sm focus:outline-none focus:border-brand-purple text-white">
+                    <span class="absolute right-4 top-3 text-xs text-gray-500">15 / 80</span>
+                </div>
+            </div>
+
+            <!-- Styles -->
+            <div class="space-y-2">
+                <label class="text-sm font-semibold text-gray-200 flex items-center gap-2">
+                    Styles <i class="fa-regular fa-circle-question text-gray-500"></i>
+                </label>
+                <div class="relative">
+                    <textarea class="w-full h-24 bg-dark-800 border border-dark-700 rounded-xl p-4 text-sm text-gray-300 focus:outline-none focus:border-brand-purple resize-none">Create a funky, high-energy Bollywood rap track inspired by the original "Lungi Dance" style. Tempo 136 BPM, party-ready South-Indian disco vibe with light dhol and tabla-inspired percussion layered with metallic claps and handclap loops. Bouncy sub-bass not overpowering to maintain groove. Plucky synths and brass hits for cinematic swag moments. Male rap vocals front punchy and playful; female tribal backup vocals for hook.</textarea>
+                    <div class="absolute bottom-2 right-2 text-brand-purple cursor-pointer"><i class="fa-solid fa-wand-magic-sparkles"></i></div>
+                </div>
+                
+                <!-- Tags -->
+                <div class="flex flex-wrap gap-2">
+                    <button class="bg-white text-black px-3 py-1.5 rounded-full text-xs font-semibold flex items-center gap-1"># Genre <i class="fa-solid fa-chevron-right text-[8px]"></i></button>
+                    <button class="bg-white text-black px-3 py-1.5 rounded-full text-xs font-semibold flex items-center gap-1"># Moods <i class="fa-solid fa-chevron-right text-[8px]"></i></button>
+                    <button class="bg-white text-black px-3 py-1.5 rounded-full text-xs font-semibold flex items-center gap-1"># Voices <i class="fa-solid fa-chevron-right text-[8px]"></i></button>
+                    <button class="bg-white text-black px-3 py-1.5 rounded-full text-xs font-semibold flex items-center gap-1"># Tempos <i class="fa-solid fa-chevron-right text-[8px]"></i></button>
+                </div>
+            </div>
+
+            <!-- Persona -->
+            <div class="space-y-2">
+                <label class="text-sm font-semibold text-gray-200 flex items-center gap-2">
+                    Imitate Song Style (Optional) <i class="fa-regular fa-circle-question text-gray-500"></i>
+                </label>
+                <div class="bg-dark-800 border border-dark-700 rounded-xl p-4 flex items-center gap-4 cursor-pointer hover:bg-dark-700 transition">
+                    <div class="w-12 h-12 rounded-full bg-gradient-to-br from-purple-900 to-pink-900 flex items-center justify-center text-xl">
+                        <i class="fa-regular fa-user"></i>
+                    </div>
+                    <div>
+                        <h4 class="text-sm font-medium text-white">Select Persona</h4>
+                        <p class="text-xs text-gray-500">Select the tone of an existing music to generate music</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Advanced -->
+            <div class="bg-dark-800 rounded-xl p-4 flex justify-between items-center cursor-pointer border border-dark-700">
+                <span class="text-sm font-medium text-gray-300">Advanced Options</span>
+                <i class="fa-solid fa-chevron-down text-gray-500"></i>
+            </div>
+
+            <!-- Generate Button -->
+            <div class="pt-4 pb-8">
+                <div class="flex items-center gap-4">
+                    <button class="w-14 h-14 rounded-full bg-white text-black flex items-center justify-center shadow-lg hover:scale-105 transition">
+                        <i class="fa-solid fa-arrow-up-from-bracket text-xl"></i>
+                    </button>
+                    <button class="flex-1 h-14 rounded-full gradient-bg text-black font-bold text-lg shadow-lg shadow-purple-900/50 hover:opacity-90 transition flex items-center justify-center gap-2">
+                        Generate <i class="fa-solid fa-arrow-right"></i>
+                    </button>
+                </div>
+                <p class="text-center text-xs text-gray-500 mt-3">Generating once costs 4 credits</p>
+            </div>
+        </div>
+
+        <!-- VIEW: SONG LIST (Placeholder for brevity) -->
+        <div id="view-list" class="hidden p-4 space-y-6 animate-fade-in">
+             <div class="text-center py-10">
+                <i class="fa-solid fa-compact-disc text-6xl text-dark-700 mb-4"></i>
+                <h3 class="text-xl font-bold text-gray-300">My Songs Library</h3>
+                <p class="text-gray-500 text-sm mt-2">Your generated tracks will appear here.</p>
+             </div>
+        </div>
+
+    </main>
+
+    <!-- Bottom Player -->
+    <div class="fixed bottom-0 left-0 right-0 bg-dark-800/95 backdrop-blur-md border-t border-dark-700 px-4 py-3 z-30 max-w-md mx-auto">
+        <div class="flex items-center justify-between mb-2">
+            <div class="flex items-center gap-3 w-1/3">
+                <div class="w-10 h-10 rounded-lg overflow-hidden relative">
+                    <img src="https://image.qwenlm.ai/public_source/33ecb148-f157-4807-9279-7bc5c9cdcdb2/124d54ab2-dff2-40e2-9943-ce1f31aa0670.png" class="w-full h-full object-cover">
+                </div>
+                <div class="hidden sm:block">
+                    <h4 class="text-sm font-bold text-white truncate">Lungi Dance 2.0</h4>
+                    <p class="text-xs text-gray-400">AI Generated</p>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-4 justify-center w-1/3">
+                <button class="text-gray-400 hover:text-white"><i class="fa-solid fa-backward-step"></i></button>
+                <button class="w-12 h-12 rounded-full bg-white text-black flex items-center justify-center hover:scale-105 transition shadow-lg shadow-white/20">
+                    <i class="fa-solid fa-play ml-1"></i>
+                </button>
+                <button class="text-gray-400 hover:text-white"><i class="fa-solid fa-forward-step"></i></button>
+            </div>
+
+            <div class="flex items-center justify-end gap-3 w-1/3">
+                <button class="text-gray-400 hover:text-brand-purple"><i class="fa-solid fa-expand"></i></button>
+                <button class="text-gray-400 hover:text-white"><i class="fa-solid fa-chevron-down"></i></button>
+                <button class="text-gray-400 hover:text-white"><i class="fa-regular fa-circle-xmark"></i></button>
+            </div>
+        </div>
+
+        <!-- Progress Bar -->
+        <div class="flex items-center gap-3 text-xs text-gray-400 font-mono">
+            <span>0:00</span>
+            <div class="flex-1 h-1.5 bg-dark-600 rounded-full relative overflow-hidden group cursor-pointer">
+                <div class="absolute inset-y-0 left-0 w-1/3 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full"></div>
+                <div class="absolute inset-y-0 left-1/3 w-3 h-3 bg-white rounded-full -top-0.5 shadow-md opacity-0 group-hover:opacity-100 transition"></div>
+            </div>
+            <span>4:07</span>
+        </div>
+    </div>
+
+    <script>
+        // Sidebar Logic
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('overlay');
+            
+            if (sidebar.classList.contains('-translate-x-full')) {
+                // Open
+                sidebar.classList.remove('-translate-x-full');
+                overlay.classList.remove('hidden');
+                setTimeout(() => overlay.classList.remove('opacity-0'), 10);
+            } else {
+                // Close
+                sidebar.classList.add('-translate-x-full');
+                overlay.classList.add('opacity-0');
+                setTimeout(() => overlay.classList.add('hidden'), 300);
+            }
+        }
+
+        // View Switching Logic
+        function switchView(viewName) {
+            // Hide all views
+            document.getElementById('view-create').classList.add('hidden');
+            document.getElementById('view-list').classList.add('hidden');
+            document.getElementById('view-admin').classList.add('hidden');
+            
+            // Show selected view
+            document.getElementById(`view-${viewName}`).classList.remove('hidden');
+            
+            // Close sidebar on mobile after selection
+            if(window.innerWidth < 768) {
+                toggleSidebar();
+            }
+        }
+
+        // Admin Mode Toggle
+        let isAdmin = false;
+        function toggleAdminMode() {
+            isAdmin = !isAdmin;
+            const btn = document.getElementById('adminToggleBtn');
+            
+            if (isAdmin) {
+                // Switch to Admin View
+                switchView('admin');
+                btn.innerHTML = '<i class="fa-solid fa-user"></i> Switch to User Mode';
+                btn.classList.remove('bg-dark-700', 'text-gray-400', 'border-gray-600');
+                btn.classList.add('bg-blue-900/30', 'text-blue-400', 'border-blue-500/30');
+            } else {
+                // Switch to User View
+                switchView('create');
+                btn.innerHTML = '<i class="fa-solid fa-user-shield"></i> Switch to Admin Panel';
+                btn.classList.add('bg-dark-700', 'text-gray-400', 'border-gray-600');
+                btn.classList.remove('bg-blue-900/30', 'text-blue-400', 'border-blue-500/30');
+            }
+        }
+    </script>
+</body>
+</html>
+
